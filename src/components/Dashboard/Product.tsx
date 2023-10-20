@@ -29,7 +29,7 @@ const Product = () => {
           </AccordionTrigger>
           <AccordionContent>
             <div>
-              <div className="flex gap-3 flex-wrap justify-center text-xs sm:text-base">
+              <div className="flex gap-8 flex-wrap justify-center text-xs sm:text-base">
                 <div>
                   <p className="font-extralight mb-2">Retail Price</p>
                   <p className="font-semibold text-center">$69.99</p>
