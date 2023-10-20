@@ -4,7 +4,7 @@ import Product from "./Product";
 const Dashboard = () => {
   return (
     <div className="my-10">
-      <h1 className="font-semibold text-2xl">Tracked Items</h1>
+      <h1 className="font-semibold text-2xl mb-4">Tracked Items</h1>
       <Product />
       <Product />
       <Product />
