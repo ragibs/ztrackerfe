@@ -1,9 +1,9 @@
 import { Button } from "../ui/button";
 import { scrappedZaraProduct } from "@/lib/scrapper";
 
-scrappedZaraProduct(
-  "https://www.zara.com/ca/en/-p04437273.html?v1=311731495&v2=2290613"
-);
+// scrappedZaraProduct(
+//   "https://www.zara.com/ca/en/-p04437273.html?v1=311731495&v2=2290613"
+// );
 
 const Search = () => {
   return (
