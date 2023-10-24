@@ -1,11 +1,31 @@
-import axios from "axios";
 import puppeteer from "puppeteer";
+
+type availableSizes = {
+  size: string;
+  stock: string;
+};
+
+//date function
+
+const now = new Date();
+const options = {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  hour: "numeric",
+  minute: "numeric",
+  second: "numeric",
+  hour12: true,
+  timeZoneName: "short",
+};
+
+const formattedDate = now.toLocaleString("en-US", options);
 
 export async function scrappedZaraProduct(url: string) {
   if (!url) return;
 
   try {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
     await page.setExtraHTTPHeaders({
       "user-agent":
@@ -18,11 +38,86 @@ export async function scrappedZaraProduct(url: string) {
     });
     await page.goto(url);
 
-    let all_p_elements = await page.$x(
-      `//*[@id="main"]/article/div[2]/div[1]/div[2]/div/div[2]/div[1]/p`
+    //is there a product varient? if so which one is selected?
+    const colors: string[] = [];
+
+    await page
+      .evaluate(() => {
+        const colorVariants = document.querySelectorAll<HTMLElement>(
+          ".product-detail-color-selector__color-area > span"
+        );
+
+        return Array.from(colorVariants).map((i: HTMLElement) => i.innerText);
+      })
+      .then((FindColorVariants) => {
+        colors.push(...FindColorVariants);
+      });
+    //get sale price
+
+    const salePrice = await page.evaluate(
+      () =>
+        document.querySelector<HTMLElement>(
+          "span.price-current__amount > div > span"
+        )?.innerText
     );
 
-    console.log(all_p_elements);
+    // get retail price
+    const retailPrice = await page.evaluate(
+      () =>
+        document.querySelector<HTMLElement>(
+          " span.price__amount--old-price-wrapper > span > div > span"
+        )?.innerText
+    );
+
+    //get product id
+    const productId = await page.evaluate(() =>
+      document
+        .querySelector<HTMLElement>("div.product-detail-info__actions > p")
+        ?.innerText.split("|")[1]
+        .trim()
+    );
+
+    //get all type of sizes
+    const sizes: availableSizes[] = [];
+
+    await page
+      .evaluate(() => {
+        const sizeVariants = document.querySelectorAll<HTMLElement>(
+          ".size-selector__size-list > li"
+        );
+
+        return Array.from(sizeVariants).map((size) => {
+          if (
+            size.classList.contains(
+              "size-selector__size-list-item--is-disabled"
+            )
+          ) {
+            return {
+              size: size.innerText.split(`\n`)[0].trim(),
+              stock: "outofstock",
+            };
+          } else {
+            return {
+              size: size.innerText.split(`\n`)[0].trim(),
+              stock: "instock",
+            };
+          }
+        });
+      })
+      .then((sizeVariants) => {
+        sizes.push(...sizeVariants);
+      });
+
+    //get instock or out of stock
+
+    console.log(
+      retailPrice,
+      salePrice,
+      colors,
+      productId,
+      sizes,
+      formattedDate
+    );
 
     await browser.close();
   } catch (error: any) {
