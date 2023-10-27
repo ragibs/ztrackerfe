@@ -1,11 +1,10 @@
+import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
 type availableSizes = {
   size: string;
   stock: string;
 };
-
-//date function
 
 const now = new Date();
 const options: Intl.DateTimeFormatOptions = {
@@ -21,11 +20,22 @@ const options: Intl.DateTimeFormatOptions = {
 
 const formattedDate = now.toLocaleString("en-US", options);
 
-export async function scrappedZaraProduct(url: string) {
-  if (!url) return;
+export async function POST(request: Request) {
+  const { searchPrompt: userSearch } = await request.json();
+
+  if (!userSearch) {
+    return NextResponse.json(
+      { error: "Search parameter not provided" },
+      { status: 400 }
+    );
+  }
+
+  let browser;
 
   try {
-    const browser = await puppeteer.launch({ headless: false });
+    browser = await puppeteer.launch({
+      headless: "new",
+    });
     const page = await browser.newPage();
     await page.setExtraHTTPHeaders({
       "user-agent":
@@ -36,7 +46,17 @@ export async function scrappedZaraProduct(url: string) {
       "accept-encoding": "gzip, deflate, br",
       "accept-language": "en-US,en;q=0.9,en;q=0.8",
     });
-    await page.goto(url);
+    await page.goto(userSearch);
+
+    //find the cover photo
+
+    const productImg = await page.evaluate(() =>
+      document
+        .querySelector<HTMLElement>(
+          "div.product-detail-images__frame > ul > li:nth-child(1) > button > div > div > picture > img"
+        )
+        ?.getAttribute("src")
+    );
 
     //is there a product varient? if so which one is selected?
     const colors: string[] = [];
@@ -109,18 +129,27 @@ export async function scrappedZaraProduct(url: string) {
       });
 
     //get instock or out of stock
+    let product = [];
 
-    console.log(
-      retailPrice,
-      salePrice,
-      colors,
-      productId,
-      sizes,
-      formattedDate
-    );
-
-    await browser.close();
+    product.push({
+      link: userSearch,
+      img: productImg,
+      retailPrice: retailPrice,
+      salesPrice: salePrice,
+      colors: colors,
+      productId: productId,
+      sizes: sizes,
+      dateAdded: formattedDate,
+    });
+    return NextResponse.json({ product });
   } catch (error: any) {
-    console.log(error);
+    return NextResponse.json(
+      { error: `An error occurred: ${error.message}` },
+      { status: 200 }
+    );
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
