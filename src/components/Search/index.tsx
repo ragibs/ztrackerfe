@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import { Button } from "../ui/button";
-import { scrappedZaraProduct } from "@/lib/scrapper";
 
 const Search = () => {
   const [searchPrompt, setSearchPrompt] = useState("");
