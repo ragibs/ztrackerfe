@@ -6,10 +6,11 @@ import { Button } from "../ui/button";
 const Search = () => {
   const [searchPrompt, setSearchPrompt] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
+    setLoading(true);
     const res = await fetch("/searchprod", {
       method: "POST",
       body: JSON.stringify({ searchPrompt }),
@@ -19,9 +20,10 @@ const Search = () => {
     });
     const { product } = await res.json();
 
-    console.log(product[0]);
+    console.log(product?.[0]);
     setSearchResults(product);
     console.log(searchResults);
+    setLoading(false);
   };
 
   return (
@@ -45,8 +47,8 @@ const Search = () => {
           Add your favourite item you want to track!
         </p>
         <div className="flex justify-center">
-          <Button className="mt-4" type="submit">
-            + Add
+          <Button className="mt-4" type="submit" disabled={loading === true}>
+            {loading ? "Loading" : "+ Add"}
           </Button>
         </div>
       </form>
