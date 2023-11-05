@@ -58,6 +58,15 @@ export async function POST(request: Request) {
         ?.getAttribute("src")
     );
 
+    //get sale price
+
+    const title = await page.evaluate(
+      () =>
+        document.querySelector<HTMLElement>(
+          "div.product-detail-info__header > h1"
+        )?.innerText
+    );
+
     //is there a product varient? if so which one is selected?
     const colors: string[] = [];
 
@@ -90,12 +99,14 @@ export async function POST(request: Request) {
     );
 
     //get product id
-    const productId = await page.evaluate(() =>
-      document
+    const productId = await page.evaluate(() => {
+      const product = document
         .querySelector<HTMLElement>("div.product-detail-info__actions > p")
         ?.innerText.split("|")[1]
-        .trim()
-    );
+        .trim();
+
+      return product;
+    });
 
     //get all type of sizes
     const sizes: availableSizes[] = [];
@@ -130,9 +141,10 @@ export async function POST(request: Request) {
 
     //get instock or out of stock
     let product = [];
-
+    console.log(productId);
     product.push({
       link: userSearch,
+      title: title,
       img: productImg,
       retailPrice: retailPrice,
       salesPrice: salePrice,

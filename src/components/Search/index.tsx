@@ -2,11 +2,14 @@
 
 import { FormEvent, useState } from "react";
 import { Button } from "../ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import AddModal from "../AddModal";
 
 const Search = () => {
   const [searchPrompt, setSearchPrompt] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -20,10 +23,11 @@ const Search = () => {
     });
     const { product } = await res.json();
 
-    console.log(product?.[0]);
-    setSearchResults(product);
-    console.log(searchResults);
+    // console.log(product?.[0]);
+    setSearchResults(product?.[0]);
+    // console.log(searchResults);
     setLoading(false);
+    setOpen(true);
   };
 
   return (
@@ -47,9 +51,18 @@ const Search = () => {
           Add your favourite item you want to track!
         </p>
         <div className="flex justify-center">
-          <Button className="mt-4" type="submit" disabled={loading === true}>
-            {loading ? "Loading" : "+ Add"}
-          </Button>
+          <Dialog open={open}>
+            <DialogTrigger asChild>
+              <Button
+                className="mt-4"
+                type="submit"
+                disabled={loading === true}
+              >
+                {loading ? "Loading" : "+ Add"}
+              </Button>
+            </DialogTrigger>
+            <AddModal searchResults={searchResults} setOpen={setOpen} />
+          </Dialog>
         </div>
       </form>
     </div>
